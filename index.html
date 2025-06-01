@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twentytwo</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+    }
+    #ambient {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      background: black;
+      filter: blur(80px);
+      transition: background 0.3s ease;
+    }
+    #container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1;
+      padding: 5vh 0; /* отступы сверху и снизу */
+      box-sizing: border-box;
+    }
+    #video {
+      max-width: 100vw;
+      max-height: 90vh; /* чтобы учесть padding */
+      object-fit: contain;
+      display: none;
+    }
+    #playButton {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 20px 40px;
+      font-size: 24px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      color: black;
+      cursor: pointer;
+      z-index: 10;
+    }
+  </style>
+</head>
+<body>
+  <div id="ambient"></div>
+  <div id="container">
+    <video id="video" src="video.mp4" playsinline preload="auto" muted></video>
+  </div>
+  <button id="playButton">▶ Play</button>
+
+  <script>
+    const playButton = document.getElementById('playButton');
+    const video = document.getElementById('video');
+    const ambient = document.getElementById('ambient');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function updateAmbient() {
+      if (video.paused || video.ended) return;
+      canvas.width = 16;
+      canvas.height = 16;
+      ctx.drawImage(video, 0, 0, 16, 16);
+      const data = ctx.getImageData(0, 0, 16, 16).data;
+      let r = 0, g = 0, b = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        r += data[i];
+        g += data[i + 1];
+        b += data[i + 2];
+      }
+      r = Math.floor(r / (data.length / 4));
+      g = Math.floor(g / (data.length / 4));
+      b = Math.floor(b / (data.length / 4));
+      ambient.style.background = `rgb(${r}, ${g}, ${b})`;
+    }
+
+    setInterval(updateAmbient, 66);
+
+    playButton.addEventListener('click', () => {
+      playButton.style.display = 'none';
+      video.style.display = 'block';
+      video.play();
+      if (navigator.vibrate) navigator.vibrate(50);
+    });
+  </script>
+</body>
+</html>
