@@ -1,1 +1,73 @@
-<h1>Hello world</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twentytwo.today</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      background: black;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #playButton {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid white;
+      color: white;
+      padding: 20px 40px;
+      font-size: 24px;
+      border-radius: 20px;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    #video {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    @media (min-width: 768px) {
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: url("video.mp4") center/cover no-repeat;
+        filter: blur(60px) brightness(0.3);
+        z-index: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <button id="playButton">▶ Play</button>
+  <video id="video" src="video.mp4" playsinline preload="auto"></video>
+
+  <script>
+    const btn = document.getElementById('playButton');
+    const vid = document.getElementById('video');
+
+    btn.addEventListener('click', () => {
+      if (navigator.vibrate) navigator.vibrate(100);
+      btn.style.display = 'none';
+      vid.style.display = 'block';
+      vid.play();
+    });
+  </script>
+
+</body>
+</html>
