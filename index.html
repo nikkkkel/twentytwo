@@ -10,20 +10,7 @@
       padding: 0;
       background: black;
       overflow: hidden;
-      height: 100%;
-      width: 100%;
-    }
-
-    #ambient {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      background: black;
-      filter: blur(80px);
-      transition: background 0.3s ease;
+      font-family: sans-serif;
     }
 
     #container {
@@ -31,103 +18,105 @@
       top: 0;
       left: 0;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: center;
+      align-items: center;
       width: 100vw;
-      height: 100vh;
+      height: 100dvh; /* Реально видимая высота */
       z-index: 1;
       padding: 0;
       box-sizing: border-box;
+      overflow: hidden;
     }
 
     #video {
       display: none;
       object-fit: contain;
-      max-width: 100vw;
-      max-height: 100vh;
+      width: 100vw;
+      height: auto;
+      max-height: 100%;
     }
 
-    /* Кнопка */
     #playButton {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
+      width: 80px;
+      height: 80px;
+      background: url("play-button.png") center/contain no-repeat;
       border: none;
-      background: transparent;
-      padding: 0;
       cursor: pointer;
-      z-index: 10;
       transition: transform 0.2s ease;
-      outline: none;
-    }
-
-    #playButton img {
-      display: block;
-      width: 100px;
-      height: 100px;
-      user-select: none;
-      pointer-events: none;
     }
 
     #playButton:hover {
-      transform: translate(-50%, -50%) scale(0.9);
+      transform: scale(0.95);
     }
 
     #playButton:active {
-      transform: translate(-50%, -50%) scale(0.8);
+      transform: scale(0.9);
+    }
+
+    #glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100dvh;
+      pointer-events: none;
+      z-index: 0;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      mix-blend-mode: screen;
+      transition: background 0.2s ease;
     }
   </style>
 </head>
 <body>
-  <div id="ambient"></div>
   <div id="container">
-    <video id="video" src="video.mp4" playsinline preload="auto" muted></video>
+    <button id="playButton" aria-label="Play"></button>
+    <video id="video" playsinline muted>
+      <source src="video.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
   </div>
-  <button id="playButton">
-    <img src="play-button.png" alt="Play" />
-  </button>
+  <div id="glow"></div>
 
   <script>
-    const playButton = document.getElementById('playButton');
-    const video = document.getElementById('video');
-    const ambient = document.getElementById('ambient');
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const playButton = document.getElementById("playButton");
+    const video = document.getElementById("video");
+    const glow = document.getElementById("glow");
 
-    canvas.width = 16;
-    canvas.height = 16;
-
-    function updateAmbient() {
-      if (video.paused || video.ended) {
-        requestAnimationFrame(updateAmbient);
-        return;
+    playButton.addEventListener("click", async () => {
+      playButton.style.display = "none";
+      video.style.display = "block";
+      try {
+        await video.play();
+        // haptic feedback
+        if (navigator.vibrate) {
+          navigator.vibrate(10);
+        }
+      } catch (err) {
+        console.error("Playback failed:", err);
       }
-      ctx.drawImage(video, 0, 0, 16, 16);
-      const data = ctx.getImageData(0, 0, 16, 16).data;
-      let r = 0, g = 0, b = 0;
-      for (let i = 0; i < data.length; i += 4) {
+    });
+
+    // Реактивная подсветка
+    video.addEventListener("timeupdate", () => {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+      let r = 0, g = 0, b = 0, count = 0;
+      for (let i = 0; i < data.length; i += 4 * 24) {
         r += data[i];
         g += data[i + 1];
         b += data[i + 2];
+        count++;
       }
-      r = Math.floor(r / (data.length / 4));
-      g = Math.floor(g / (data.length / 4));
-      b = Math.floor(b / (data.length / 4));
-      ambient.style.background = `rgb(${r}, ${g}, ${b})`;
-
-      requestAnimationFrame(updateAmbient);
-    }
-
-    playButton.addEventListener('click', () => {
-      playButton.style.display = 'none';
-      video.style.display = 'block';
-      video.play();
-      if (navigator.vibrate) navigator.vibrate(50);
-
-      video.addEventListener('play', () => {
-        updateAmbient();
-      }, { once: true });
+      r = Math.floor(r / count);
+      g = Math.floor(g / count);
+      b = Math.floor(b / count);
+      glow.style.background = `radial-gradient(circle at center, rgba(${r},${g},${b},0.08) 0%, transparent 70%)`;
     });
   </script>
 </body>
