@@ -21,7 +21,7 @@
 
     #app {
       width: 100vw;
-      height: 100dvh; /* максимальная доступная высота */
+      height: 100dvh; /* корректная высота с учётом панели */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -50,7 +50,7 @@
       z-index: 3;
       width: 80px;
       height: 80px;
-      background: url("play.png") no-repeat center/contain;
+      background: url("play-button.png") no-repeat center/contain;
       border: none;
       cursor: pointer;
       transition: transform 0.3s ease;
@@ -84,7 +84,7 @@
         <source src="video.mp4" type="video/mp4" />
       </video>
     </div>
-    <button id="play-button.png"></button>
+    <button id="playBtn"></button>
     <div class="overlay" id="overlay"></div>
   </div>
 
@@ -119,7 +119,7 @@
         b = Math.floor(b / (frame.length / 4));
         overlay.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
       } catch (e) {
-        // Ошибка при чтении кросс-доменных видео
+        // Возможно, кадр не готов или блокировка из-за CORS
       }
     }
 
